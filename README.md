@@ -2,6 +2,7 @@
 To install:
 ```
 npm install
+npm run build
 ```
 To run
 ```

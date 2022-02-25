@@ -1,0 +1,11 @@
+/node_modules
+/coverage
+package-lock.json
+/build
+.DS_Store
+.env
+.scannerwork
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

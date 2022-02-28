@@ -1,7 +1,8 @@
 import express, { Express } from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
-import { createUser, getUserLastUpdated, updateUser } from './datahandler'
+import { NetworkError } from './exceptions'
+import { createUpdateUser, getUserLastUpdated } from './datahandler'
 import rateLimit from 'express-rate-limit'
 
 const startupTime = new Date().getTime()
@@ -22,7 +23,7 @@ const main = async (): Promise<void> => {
     })
   )
 
-  //create user
+  //create/ update user
   app.post(
     '/',
     async (req, res): Promise<void> => {
@@ -39,39 +40,14 @@ const main = async (): Promise<void> => {
         return
       }
       try {
-        await createUser(req.body.username, req.body.password)
+        let responseCode = await createUpdateUser(
+          req.body.username,
+          req.body.password
+        )
+        res.send(responseCode)
       } catch (e) {
-        res.sendStatus(500)
-        return
+        res.sendStatus((e as NetworkError).statusCode)
       }
-      res.sendStatus(201)
-    }
-  )
-
-  //update user
-  app.put(
-    '/',
-    async (req, res): Promise<void> => {
-      if (
-        !req.body ||
-        !req.body.username ||
-        typeof req.body.username !== 'string' ||
-        req.body.username.length < 1 ||
-        !req.body.password ||
-        typeof req.body.password !== 'string' ||
-        req.body.password.length < 1
-      ) {
-        res.sendStatus(400)
-        return
-      }
-      try {
-        await updateUser(req.body.username, req.body.password)
-      } catch (e) {
-        res.sendStatus(500)
-        return
-      }
-
-      res.sendStatus(201)
     }
   )
 
@@ -92,7 +68,7 @@ const main = async (): Promise<void> => {
       try {
         lastupdated = await getUserLastUpdated(req.query.username)
       } catch (e) {
-        res.sendStatus(500)
+        res.sendStatus((e as NetworkError).statusCode)
         return
       }
       res.send({ lastupdated })
